@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#FEDC00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="숨톡">
+<title>숨톡</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html{height:100%;height:-webkit-fill-available}
+body{
+  font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  background:#0f0f1a;color:#e8e8f0;
+  height:100vh;height:-webkit-fill-available;
+  overflow:hidden;display:flex;flex-direction:column;
+  max-width:480px;margin:0 auto;
+}
+#app{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0f0f1a}
+#tabbar{height:62px;background:#16162a;border-top:1px solid #ffffff0f;display:flex;align-items:stretch;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;cursor:pointer;position:relative;padding-bottom:2px}
+.tab-item span.icon{font-size:22px;line-height:1}
+.tab-item span.lbl{font-size:10px;font-weight:600;color:#7878a0}
+.tab-item.active span.lbl{color:#FEDC00}
+.badge{position:absolute;top:6px;right:calc(50% - 20px);background:#ef4444;color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 3px}
+.topbar{height:56px;background:#16162a;display:flex;align-items:center;padding:0 16px;gap:10px;border-bottom:1px solid #ffffff0a;flex-shrink:0;padding-top:env(safe-area-inset-top)}
+.back-btn{background:transparent;border:none;color:#7878a0;font-size:22px;padding:6px 10px 6px 4px;margin-left:-4px;line-height:1;cursor:pointer}
+.title{font-size:17px;font-weight:700;flex:1}
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .15s}
+.row:active{background:#ffffff08}
+.card{background:#1e1e35;border-radius:14px;margin:0 16px 8px;padding:14px 16px}
+input[type=text],input[type=password],input[type=search],textarea{
+  font-family:inherit;background:#1e1e35;border:1.5px solid #ffffff1a;
+  border-radius:12px;padding:12px 14px;font-size:15px;color:#e8e8f0;
+  outline:none;width:100%;caret-color:#FEDC00;
+  -webkit-text-fill-color:#e8e8f0;appearance:none;-webkit-appearance:none;
+}
+input::placeholder{color:#7878a0;-webkit-text-fill-color:#7878a0}
+input:focus{border-color:#FEDC0055}
+.btn-primary{background:#FEDC00;border:none;border-radius:13px;padding:14px;color:#000;font-weight:800;font-size:15px;width:100%;font-family:inherit;cursor:pointer;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.btn-danger{background:#ef444420;border:1px solid #ef444440;border-radius:12px;padding:13px;color:#ef4444;font-weight:700;font-size:14px;width:100%;font-family:inherit;cursor:pointer}
+.btn-ghost{background:transparent;border:none;color:#7878a0;font-size:13px;width:100%;font-family:inherit;cursor:pointer;padding:10px}
+.sw{width:46px;height:26px;border-radius:13px;border:none;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
+.sw::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;transition:left .2s;box-shadow:0 1px 3px #00000040}
+.sw.on{background:#FEDC00}.sw.on::after{left:23px}
+.sw.off{background:#3a3a5c}.sw.off::after{left:3px}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#1e1e35;border-radius:12px;margin:0 16px 7px;cursor:pointer;transition:background .15s}
+.set-row:active{background:#252540}
+.avt-wrap{position:relative;display:inline-block;flex-shrink:0}
+.bubble-me{background:#FEDC00;color:#111;border-radius:18px 18px 4px 18px}
+.bubble-them{background:#1e1e35;color:#e8e8f0;border-radius:18px 18px 18px 4px}
+#chatInputBar{padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom));background:#16162a;border-top:1px solid #ffffff0a;display:flex;gap:8px;align-items:center;flex-shrink:0}
+#chatInputWrap{flex:1;background:#1e1e35;border-radius:24px;padding:8px 14px;display:flex;align-items:center;gap:8px;border:1px solid #ffffff12}
+#sendBtn{width:42px;height:42px;border-radius:13px;background:#1e1e35;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer;transition:background .15s}
+.overlay{position:fixed;inset:0;background:#000000aa;z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#1e1e35;border-radius:22px 22px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.sheet-handle{width:38px;height:4px;background:#ffffff25;border-radius:2px;margin:0 auto 18px}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+::-webkit-scrollbar{width:0}
+.fade{animation:fi .18s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.sec-lbl{font-size:12px;color:#7878a0;font-weight:600;padding:14px 20px 6px;letter-spacing:.5px}
+.divider{height:1px;background:#ffffff08;margin:4px 16px}
+/* Loading spinner */
+.spinner{width:36px;height:36px;border:3px solid #ffffff15;border-top-color:#FEDC00;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══════════════ FIREBASE ═══════════════
+const FB='https://sumtok-7d603-default-rtdb.firebaseio.com';
+
+async function fbGet(path){
+  try{const r=await fetch(`${FB}/${path}.json`);if(!r.ok)return null;return await r.json()}catch{return null}
+}
+async function fbSet(path,data){
+  try{await fetch(`${FB}/${path}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})}catch{}
+}
+async function fbPatch(path,data){
+  try{await fetch(`${FB}/${path}.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})}catch{}
+}
+async function fbPush(path,data){
+  try{const r=await fetch(`${FB}/${path}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return await r.json()}catch{return null}
+}
+async function fbDel(path){
+  try{await fetch(`${FB}/${path}.json`,{method:'DELETE'})}catch{}
+}
+
+// ═══════════════ LOCAL (session + settings + photos only) ═══════════════
+const lSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const lGet=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}};
+
+// ═══════════════ UTILS ═══════════════
+const PAL=['#FF6B9D','#4ECDC4','#A78BFA','#F59E0B','#34D399','#F97316','#60A5FA','#EC4899','#e879f9','#22d3ee','#fb923c','#a3e635'];
+const rc=()=>PAL[Math.floor(Math.random()*PAL.length)];
+const ini=n=>(n||'?').slice(0,2);
+const ts=()=>{const d=new Date(),h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');return`${h>=12?'오후':'오전'} ${h>12?h-12:h||12}:${m}`};
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const chatKey=(a,b)=>[a,b].sort().join('_');
+
+// ═══════════════ STATE ═══════════════
+let S={
+  page:'loading',
+  me:null, tab:'friends',
+  friends:[],prevs:[],
+  activeChat:null, // {userId,name,color,photo,msgs[]}
+  lId:'',lPw:'',lErr:'',showPw:false,
+  sId:'',sPw:'',sPw2:'',sName:'',sErr:'',sOk:false,
+  showProf:false,pName:'',pStatus:'',
+  showAdd:false,addId:'',addRes:null,foundU:null,
+  editStatus:false,tmpStatus:'',
+  setPage:null,
+  friendProfId:null,
+  showChatOpt:false,
+  chatSearch:'',
+};
+let _txt='';
+let pollTimer=null;
+let msgStream=null;
+const app=document.getElementById('app');
+function R(){app.innerHTML='';render()}
+
+// ═══════════════ SEED ═══════════════
+async function initDB(){
+  const existing=await fbGet('users/jowonchae');
+  if(existing)return; // already seeded
+  const users={
+    jowonchae:{pw:'1234',      name:'조원채',status:'개발자입니다 👨‍💻',      color:'#FEDC00'},
+    jisukim:  {pw:'jisu1234',  name:'김지수',status:'오늘도 화이팅! 🔥',     color:'#FF6B9D'},
+    minjun99: {pw:'mj9999',    name:'박민준',status:'점심 뭐먹지...',         color:'#4ECDC4'},
+    seoyeon_: {pw:'sy0000',    name:'이서연',status:'스터디 중 📚',          color:'#A78BFA'},
+    hyunwoo22:{pw:'hw2222',    name:'최현우',status:'운동하러 갑니다 💪',     color:'#F59E0B'},
+    daeun05:  {pw:'de0505',    name:'정다은',status:'🎵 Listening to music', color:'#34D399'},
+    taeyangk: {pw:'ty1004',    name:'강태양',status:'주말에 여행가자!',        color:'#F97316'},
+    haneul7:  {pw:'hl7777',    name:'윤하늘',status:'바쁜 하루 💼',          color:'#60A5FA'},
+    chaewon_lim:{pw:'cw1234',  name:'임채원',status:'배고파 🍜',            color:'#EC4899'},
+  };
+  await fbSet('users',users);
+  // seed friends
+  await fbSet('friends/jowonchae',{jisukim:true,minjun99:true,seoyeon_:true});
+  await fbSet('friends/jisukim',{jowonchae:true});
+  await fbSet('friends/minjun99',{jowonchae:true});
+  await fbSet('friends/seoyeon_',{jowonchae:true});
+  // seed messages
+  const now='오후 6:32';
+  await fbSet(`messages/${chatKey('jowonchae','jisukim')}`,{
+    m1:{from:'jisukim',text:'야 오늘 뭐해?',time:'오후 5:10',read:true,ts:1},
+    m2:{from:'jowonchae',text:'그냥 집에 있어~',time:'오후 5:11',read:true,ts:2},
+    m3:{from:'jisukim',text:'오늘 저녁 같이 먹을래? 😊',time:'오후 6:32',read:false,ts:3},
+  });
+  await fbSet(`messages/${chatKey('jowonchae','minjun99')}`,{
+    m1:{from:'jowonchae',text:'야 나 오늘 면접 붙었어!!',time:'오후 3:10',read:true,ts:1},
+    m2:{from:'minjun99',text:'ㅋㅋㅋ 진짜?? 대박이다',time:'오후 3:15',read:false,ts:2},
+  });
+  await fbSet(`messages/${chatKey('jowonchae','seoyeon_')}`,{
+    m1:{from:'seoyeon_',text:'내일 스터디 몇시야?',time:'오전 11:45',read:false,ts:1},
+  });
+  // seed unread
+  await fbSet('unread/jowonchae',{jisukim:1,minjun99:1,seoyeon_:1});
+}
+
+// ═══════════════ HELPERS ═══════════════
+function msgObjToArr(obj){
+  if(!obj)return[];
+  return Object.values(obj).sort((a,b)=>(a.ts||0)-(b.ts||0));
+}
+
+async function loadFriends(myId){
+  const fr=await fbGet(`friends/${myId}`);
+  if(!fr)return[];
+  const ids=Object.keys(fr);
+  const arr=[];
+  for(const id of ids){
+    const u=await fbGet(`users/${id}`);
+    if(!u)continue;
+    const ov=await fbGet(`profiles/${id}`)||{};
+    const photo=lGet(`photo_${id}`);
+    arr.push({...u,...ov,id,photo,online:Math.random()>.45});
+  }
+  return arr;
+}
+
+async function loadPrevs(myId,friends){
+  const unreadData=await fbGet(`unread/${myId}`)||{};
+  const arr=[];
+  for(const f of friends){
+    const msgs=await fbGet(`messages/${chatKey(myId,f.id)}`);
+    if(!msgs)continue;
+    const list=msgObjToArr(msgs);
+    if(!list.length)continue;
+    const last=list[list.length-1];
+    const cs=await fbGet(`chatmeta/${myId}/${f.id}`)||{};
+    arr.push({userId:f.id,name:f.name,color:f.color,photo:f.photo||null,lastMsg:last.text,time:last.time,unread:unreadData[f.id]||0,muted:cs.muted||false});
+  }
+  return arr;
+}
+
+function gSet(id){return{msgAlert:true,sound:true,darkMode:true,fontSize:15,lastSeen:true,readReceipt:true,profilePhoto:'all',lang:'한국어',...(lGet(`set_${id}`)||{})}}
+function sSet(id,patch){lSet(`set_${id}`,{...gSet(id),...patch})}
+
+// ═══════════════ AVATAR ═══════════════
+function avt(name,color,size,online,photo){
+  const r=Math.round(size*.3);
+  const dot=online!=null?`<div style="position:absolute;bottom:1px;right:1px;width:${Math.round(size*.27)}px;height:${Math.round(size*.27)}px;border-radius:50%;background:${online?'#22c55e':'#94a3b8'};border:2px solid #16162a"></div>`:'';
+  const inner=photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:${Math.round(size*.36)}px;font-weight:700;color:#fff">${ini(name)}</span>`;
+  return`<div class="avt-wrap"><div style="width:${size}px;height:${size}px;border-radius:${r}px;background:${photo?'#2a2a4a':`linear-gradient(135deg,${color}dd,${color}88)`};display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${inner}</div>${dot}</div>`;
+}
+
+// ═══════════════ RENDER ═══════════════
+function render(){
+  if(S.page==='loading')   return renderLoading();
+  if(S.page==='login')     return renderLogin();
+  if(S.page==='signup')    return renderSignup();
+  if(S.page==='main')      return renderMain();
+  if(S.page==='chat')      return renderChat();
+  if(S.page==='friendprof') return renderFriendProf();
+  if(S.page==='setpage')   return renderSetPage();
+}
+
+// ═══════════════ LOADING ═══════════════
+function renderLoading(){
+  app.innerHTML=`<div class="page" style="align-items:center;justify-content:center;gap:20px">
+    <div style="width:72px;height:72px;border-radius:22px;background:#FEDC00;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 8px 28px #FEDC0060">💬</div>
+    <div style="font-size:22px;font-weight:800">숨톡</div>
+    <div class="spinner"></div>
+    <div style="font-size:13px;color:#7878a0" id="loadMsg">서버에 연결 중...</div>
+  </div>`;
+}
+function setLoadMsg(t){const el=document.getElementById('loadMsg');if(el)el.textContent=t}
+
+// ═══════════════ LOGIN ═══════════════
+function renderLogin(){
+  app.innerHTML=`<div class="fade page" style="justify-content:center;overflow-y:auto;padding:28px 24px">
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="width:72px;height:72px;border-radius:22px;background:#FEDC00;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 14px;box-shadow:0 8px 28px #FEDC0060">💬</div>
+      <div style="font-size:26px;font-weight:800">숨톡</div>
+      <div style="font-size:14px;color:#7878a0;margin-top:5px">로그인하고 친구와 대화해요</div>
+    </div>
+    <div style="margin-bottom:13px">
+      <div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:6px;padding-left:2px">아이디</div>
+      <input id="li" type="text" autocomplete="username" placeholder="아이디 입력" style="border-color:${S.lErr?'#ef4444':'#ffffff1a'}">
+    </div>
+    <div style="margin-bottom:18px">
+      <div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:6px;padding-left:2px">비밀번호</div>
+      <div style="position:relative">
+        <input id="lp" type="${S.showPw?'text':'password'}" autocomplete="current-password" placeholder="비밀번호 입력" style="border-color:${S.lErr?'#ef4444':'#ffffff1a'};padding-right:48px">
+        <button id="tpw" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:transparent;border:none;font-size:18px;padding:4px;color:#7878a0">${S.showPw?'🙈':'👁️'}</button>
+      </div>
+    </div>
+    ${S.lErr?`<div style="background:#ef444420;border:1px solid #ef444440;border-radius:11px;padding:10px 14px;font-size:13px;color:#ef4444;margin-bottom:14px;text-align:center">${esc(S.lErr)}</div>`:''}
+    <button id="doLogin" class="btn-primary" style="margin-bottom:16px">로그인</button>
+    <div style="text-align:center;font-size:14px;color:#7878a0">계정이 없으신가요? <span id="goSu" style="color:#FEDC00;font-weight:700;cursor:pointer">회원가입</span></div>
+  </div>`;
+  const li=document.getElementById('li'),lp=document.getElementById('lp');
+  li.value=S.lId; lp.value=S.lPw;
+  li.oninput=ev=>S.lId=ev.target.value;
+  lp.oninput=ev=>S.lPw=ev.target.value;
+  li.onkeydown=lp.onkeydown=ev=>{if(ev.key==='Enter')doLogin()};
+  document.getElementById('tpw').onclick=()=>{S.showPw=!S.showPw;R()};
+  document.getElementById('doLogin').onclick=doLogin;
+  document.getElementById('goSu').onclick=()=>{S.page='signup';R()};
+}
+
+async function doLogin(){
+  S.lErr='';
+  const btn=document.getElementById('doLogin');
+  if(btn){btn.disabled=true;btn.textContent='확인 중...'}
+  const u=await fbGet(`users/${S.lId.trim()}`);
+  if(!u){S.lErr='존재하지 않는 아이디입니다';R();return}
+  if(u.pw!==S.lPw){S.lErr='비밀번호가 올바르지 않습니다';R();return}
+  const ov=await fbGet(`profiles/${S.lId.trim()}`)||{};
+  const photo=lGet(`photo_${S.lId.trim()}`);
+  S.me={...u,...ov,id:S.lId.trim(),photo};
+  lSet('session',{id:S.lId.trim()});
+  // load data
+  S.page='loading'; R(); setLoadMsg('데이터 불러오는 중...');
+  S.friends=await loadFriends(S.me.id);
+  S.prevs=await loadPrevs(S.me.id,S.friends);
+  S.tab='friends'; S.page='main'; S.lId=''; S.lPw=''; S.lErr='';
+  _txt=''; startPoll(); R();
+}
+
+// ═══════════════ SIGNUP ═══════════════
+function renderSignup(){
+  app.innerHTML=`<div class="fade page" style="overflow-y:auto">
+    <div class="topbar"><button id="back" class="back-btn">←</button><div class="title">회원가입</div></div>
+    <div style="padding:24px">
+    ${S.sOk?`<div style="text-align:center;padding:50px 0"><div style="font-size:56px;margin-bottom:14px">🎉</div><div style="font-size:18px;font-weight:700">가입 완료!</div><div style="font-size:14px;color:#7878a0;margin-top:6px">로그인 화면으로 이동합니다...</div></div>`:`
+    ${[['아이디','sId','text','영문+숫자 4자 이상'],['닉네임','sName','text','표시될 이름'],['비밀번호','sPw','password','4자 이상'],['비밀번호 확인','sPw2','password','비밀번호 재입력']].map(([lb,id,tp,ph])=>`
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:6px;padding-left:2px">${lb}</div>
+      <input id="${id}" type="${tp}" placeholder="${ph}">
+    </div>`).join('')}
+    ${S.sErr?`<div style="background:#ef444420;border:1px solid #ef444440;border-radius:11px;padding:10px 14px;font-size:13px;color:#ef4444;margin-bottom:14px;text-align:center">${esc(S.sErr)}</div>`:''}
+    <button id="doSu" class="btn-primary">계정 만들기</button>`}
+    </div></div>`;
+  document.getElementById('back').onclick=()=>{S.page='login';R()};
+  if(!S.sOk){
+    ['sId','sName','sPw','sPw2'].forEach(id=>{
+      const el=document.getElementById(id);if(!el)return;
+      el.value=S[id]||'';el.oninput=ev=>S[id]=ev.target.value;
+      el.onkeydown=ev=>{if(ev.key==='Enter')doSignup()};
+    });
+    document.getElementById('doSu').onclick=doSignup;
+  }
+}
+
+async function doSignup(){
+  S.sErr='';
+  const btn=document.getElementById('doSu');
+  if(btn){btn.disabled=true;btn.textContent='확인 중...'}
+  if(!S.sId.trim()){S.sErr='아이디를 입력해주세요';R();return}
+  if(S.sId.length<4){S.sErr='아이디는 4자 이상이어야 합니다';R();return}
+  if(/\s/.test(S.sId)){S.sErr='공백은 사용할 수 없어요';R();return}
+  if(!S.sName.trim()){S.sErr='닉네임을 입력해주세요';R();return}
+  if(S.sPw.length<4){S.sErr='비밀번호는 4자 이상이어야 합니다';R();return}
+  if(S.sPw!==S.sPw2){S.sErr='비밀번호가 일치하지 않아요';R();return}
+  const existing=await fbGet(`users/${S.sId.trim()}`);
+  if(existing){S.sErr='이미 사용 중인 아이디입니다';R();return}
+  await fbSet(`users/${S.sId.trim()}`,{pw:S.sPw,name:S.sName.trim(),status:'안녕하세요! 반가워요 👋',color:rc()});
+  S.sOk=true;R();
+  setTimeout(()=>{S.sOk=false;S.sId='';S.sPw='';S.sPw2='';S.sName='';S.sErr='';S.page='login';R()},1800);
+}
+
+// ═══════════════ MAIN ═══════════════
+function renderMain(){
+  const me=S.me;
+  const totalUnread=S.prevs.reduce((s,x)=>s+(x.unread||0),0);
+  app.innerHTML=`<div class="page">
+    <div id="tabContent" style="flex:1;overflow:hidden;display:flex;flex-direction:column"></div>
+    <div id="tabbar">
+      ${[['friends','👥','친구'],['chats','💬','채팅'],['settings','⚙️','설정']].map(([id,icon,lbl])=>`
+      <button class="tab-item ${S.tab===id?'active':''}" data-tab="${id}">
+        <span class="icon">${icon}</span><span class="lbl">${lbl}</span>
+        ${id==='chats'&&totalUnread>0?`<div class="badge">${totalUnread}</div>`:''}
+      </button>`).join('')}
+    </div>
+  </div>
+  ${S.showProf?profSheet():''}
+  ${S.showAdd?addSheet():''}`;
+  const tc=document.getElementById('tabContent');
+  if(S.tab==='friends') tc.innerHTML=tabFriends();
+  if(S.tab==='chats')   tc.innerHTML=tabChats();
+  if(S.tab==='settings') tc.innerHTML=tabSettings();
+  bindMain();
+}
+
+function tabFriends(){
+  const me=S.me, fs=S.friends;
+  const nm=me.name,st=me.status,col=me.color,ph=me.photo||null;
+  return`<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+  <div id="openProf" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid #ffffff0a;cursor:pointer;background:#16162a;flex-shrink:0">
+    <div style="position:relative">${avt(nm,col,54,undefined,ph)}
+      <div style="position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;background:#FEDC00;border:2px solid #16162a;display:flex;align-items:center;justify-content:center;font-size:9px">✏️</div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700">${esc(nm)}</div>
+      <div style="font-size:11px;color:#FEDC00aa;margin-bottom:2px">@${esc(me.id)}</div>
+      ${S.editStatus
+        ?`<div style="display:flex;gap:6px;margin-top:4px"><input id="stIn" type="text" style="flex:1;padding:6px 10px;font-size:12px;border-radius:8px"><button id="stSv" style="background:#FEDC00;border:none;border-radius:8px;padding:6px 12px;color:#000;font-size:12px;font-weight:700;flex-shrink:0;font-family:inherit">확인</button></div>`
+        :`<div id="editSt" style="font-size:13px;color:#7878a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(st)} ✏️</div>`}
+    </div>
+  </div>
+  <div style="padding:10px 16px;background:#16162a;border-bottom:1px solid #ffffff0a;flex-shrink:0">
+    <button id="openAdd" style="width:100%;background:#FEDC0018;border:1.5px solid #FEDC0040;border-radius:11px;padding:10px;color:#FEDC00;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit">➕ 친구 추가</button>
+  </div>
+  <div class="scroll">
+    <div class="sec-lbl">친구 ${fs.length}명 · 온라인 ${fs.filter(f=>f.online).length}</div>
+    ${fs.length===0?`<div style="text-align:center;padding:50px 20px;color:#7878a0;font-size:14px"><div style="font-size:44px;margin-bottom:12px">👥</div>아직 친구가 없어요</div>`:''}
+    ${fs.map(f=>`<div class="row fr-row" data-uid="${f.id}" style="padding:13px 20px">
+      <div class="prof-avt" data-uid="${f.id}">${avt(f.name,f.color,50,f.online,f.photo||null)}</div>
+      <div style="flex:1;min-width:0;pointer-events:none">
+        <div style="font-size:15px;font-weight:600">${esc(f.name)}</div>
+        <div style="font-size:11px;color:#FEDC0077;margin-bottom:1px">@${esc(f.id)}</div>
+        <div style="font-size:13px;color:#7878a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.status||'')}</div>
+      </div>
+    </div>`).join('')}
+    <div style="height:20px"></div>
+  </div></div>`;
+}
+
+function tabChats(){
+  const fp=S.chatSearch?S.prevs.filter(p=>p.name.includes(S.chatSearch)):S.prevs;
+  return`<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+  <div style="padding:14px 16px 10px;background:#16162a;border-bottom:1px solid #ffffff0a;flex-shrink:0">
+    <div style="font-size:20px;font-weight:800;margin-bottom:10px;padding-left:4px">채팅</div>
+    <div style="background:#1e1e35;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:15px;color:#7878a0">🔍</span>
+      <input id="csrch" type="search" placeholder="대화 검색" style="background:transparent;border:none;padding:0;font-size:14px;border-radius:0;-webkit-text-fill-color:#e8e8f0;flex:1;outline:none">
+    </div>
+  </div>
+  <div class="scroll">
+    ${fp.length===0?`<div style="text-align:center;padding:50px 20px;color:#7878a0;font-size:14px"><div style="font-size:44px;margin-bottom:12px">💬</div>대화가 없어요</div>`:''}
+    ${fp.map(p=>`<div class="row chat-row" data-uid="${p.userId}" style="padding:12px 20px">
+      <div class="prof-avt" data-uid="${p.userId}">${avt(p.name,p.color||'#888',50,undefined,p.photo)}</div>
+      <div style="flex:1;min-width:0;pointer-events:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:15px;font-weight:600">${esc(p.name)}</span>
+          <span style="font-size:11px;color:#7878a0">${p.muted?'🔕 ':''}${p.time}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:#7878a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">${esc(p.lastMsg)}</span>
+          ${p.unread>0?`<div style="background:#FEDC00;color:#000;border-radius:10px;min-width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;padding:0 5px;flex-shrink:0;margin-left:6px">${p.unread}</div>`:''}
+        </div>
+      </div>
+    </div>`).join('')}
+    <div style="height:20px"></div>
+  </div></div>`;
+}
+
+function tabSettings(){
+  const me=S.me;
+  return`<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+  <div style="padding:14px 20px 10px;background:#16162a;border-bottom:1px solid #ffffff0a;flex-shrink:0">
+    <div style="font-size:20px;font-weight:800">설정</div>
+  </div>
+  <div class="scroll">
+    <div id="openProf" class="row" style="padding:16px 20px;margin-top:6px">
+      ${avt(me.name,me.color,54,undefined,me.photo||null)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:700">${esc(me.name)}</div>
+        <div style="font-size:11px;color:#FEDC00aa;margin:2px 0">@${esc(me.id)}</div>
+        <div style="font-size:13px;color:#7878a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(me.status)}</div>
+      </div>
+      <span style="color:#7878a0;font-size:16px">›</span>
+    </div>
+    <div class="divider"></div>
+    <div class="sec-lbl">일반</div>
+    ${[['notify','🔔','알림','메시지 알림, 소리'],['display','🎨','테마 & 화면','글자 크기, 배경색'],['privacy','🔒','개인정보','읽음 표시, 접속 표시']].map(([pg,icon,lbl,desc])=>`
+    <div class="set-row" data-sp="${pg}">
+      <div style="display:flex;align-items:center;gap:14px"><span style="font-size:20px;width:28px;text-align:center">${icon}</span>
+      <div><div style="font-size:14px;font-weight:600">${lbl}</div><div style="font-size:12px;color:#7878a0;margin-top:1px">${desc}</div></div></div>
+      <span style="color:#7878a0;font-size:18px">›</span>
+    </div>`).join('')}
+    <div class="sec-lbl">기타</div>
+    ${[['storage','💾','저장공간','캐시 및 데이터'],['lang','🌍','언어','현재: 한국어'],['account','🔑','계정 관리','비밀번호 변경'],['help','❓','도움말','FAQ, 문의'],['about','📋','버전 정보','숨톡 v1.0']].map(([pg,icon,lbl,desc])=>`
+    <div class="set-row" data-sp="${pg}">
+      <div style="display:flex;align-items:center;gap:14px"><span style="font-size:20px;width:28px;text-align:center">${icon}</span>
+      <div><div style="font-size:14px;font-weight:600">${lbl}</div><div style="font-size:12px;color:#7878a0;margin-top:1px">${desc}</div></div></div>
+      <span style="color:#7878a0;font-size:18px">›</span>
+    </div>`).join('')}
+    <div style="padding:16px"><button id="doLogout" class="btn-danger">🚪 로그아웃</button></div>
+    <div style="height:10px"></div>
+  </div></div>`;
+}
+
+function bindMain(){
+  document.querySelectorAll('.tab-item').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;R()});
+  document.querySelectorAll('#openProf').forEach(el=>{
+    el.onclick=()=>{const ov=S.me;S.pName=ov.name;S.pStatus=ov.status;S.showProf=true;R()};
+  });
+  const oa=document.getElementById('openAdd');
+  if(oa)oa.onclick=()=>{S.showAdd=true;S.addId='';S.addRes=null;S.foundU=null;R()};
+  const es=document.getElementById('editSt');
+  if(es)es.onclick=e=>{e.stopPropagation();S.tmpStatus=S.me.status;S.editStatus=true;R()};
+  const si=document.getElementById('stIn');
+  if(si){si.value=S.tmpStatus;si.oninput=ev=>S.tmpStatus=ev.target.value;si.onkeydown=ev=>{if(ev.key==='Enter')saveStatus()};setTimeout(()=>si.focus(),50)}
+  const sv=document.getElementById('stSv');
+  if(sv)sv.onclick=e=>{e.stopPropagation();saveStatus()};
+  document.querySelectorAll('.fr-row').forEach(row=>{
+    row.onclick=ev=>{
+      if(ev.target.closest('.prof-avt')){S.friendProfId=row.dataset.uid;S.page='friendprof';R();return}
+      openChat(row.dataset.uid);
+    };
+  });
+  document.querySelectorAll('.chat-row').forEach(row=>{
+    row.onclick=ev=>{
+      if(ev.target.closest('.prof-avt')){S.friendProfId=row.dataset.uid;S.page='friendprof';R();return}
+      openChat(row.dataset.uid);
+    };
+  });
+  const cs=document.getElementById('csrch');
+  if(cs){cs.value=S.chatSearch;cs.oninput=ev=>{S.chatSearch=ev.target.value;R()}}
+  document.querySelectorAll('[data-sp]').forEach(el=>el.onclick=()=>{S.setPage=el.dataset.sp;S.page='setpage';R()});
+  const dl=document.getElementById('doLogout');
+  if(dl)dl.onclick=doLogout;
+  bindProfSheet(); bindAddSheet();
+}
+
+// ═══════════════ CHAT ═══════════════
+function renderChat(){
+  const c=S.activeChat;
+  const set=gSet(S.me.id);
+  const fs=set.fontSize||15;
+  const showRead=set.readReceipt!==false;
+  const chatBg=set.chatBg||'#0f0f1a';
+  app.innerHTML=`<div class="page" style="background:${chatBg}">
+  <div class="topbar">
+    <button id="chatBack" class="back-btn">←</button>
+    <div id="chatProfBtn" style="cursor:pointer;flex-shrink:0">${avt(c.name,c.color,38,undefined,c.photo)}</div>
+    <div id="chatProfBtn2" style="flex:1;min-width:0;cursor:pointer">
+      <div style="font-size:16px;font-weight:700;line-height:1.2">${esc(c.name)}</div>
+      <div style="font-size:11px;color:#FEDC0088">@${esc(c.userId)}</div>
+    </div>
+    <button id="chatOpt" style="background:transparent;border:none;color:#7878a0;font-size:24px;padding:4px 8px">⋯</button>
+  </div>
+  <div id="msgList" class="scroll" style="flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+    ${renderMsgs(c.msgs,fs,showRead,c)}
+    <div id="msgEnd"></div>
+  </div>
+  <div id="chatInputBar">
+    <div id="chatInputWrap">
+      <span style="font-size:18px;flex-shrink:0">😊</span>
+      <input id="msgIn" type="text" placeholder="메시지 보내기..." style="background:transparent;border:none;padding:0;font-size:${fs}px;border-radius:0;-webkit-text-fill-color:#e8e8f0;width:0;flex:1;outline:none;color:#e8e8f0;caret-color:#FEDC00">
+      <label style="font-size:18px;cursor:pointer;flex-shrink:0">📎<input type="file" id="imgIn" accept="image/*" style="display:none"></label>
+    </div>
+    <button id="sendBtn">➤</button>
+  </div>
+  </div>
+  ${S.showChatOpt?chatOptSheet():''}`;
+  const mi=document.getElementById('msgIn');
+  mi.value=_txt; updateSendBtn();
+  mi.oninput=ev=>{_txt=ev.target.value;updateSendBtn()};
+  mi.onkeydown=ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();doSend()}};
+  document.getElementById('sendBtn').onclick=doSend;
+  document.getElementById('chatBack').onclick=()=>{stopMsgStream();S.page='main';S.prevs=[];loadPrevs(S.me.id,S.friends).then(p=>{S.prevs=p;R()});R()};
+  document.getElementById('chatOpt').onclick=()=>{S.showChatOpt=true;R()};
+  document.getElementById('chatProfBtn').onclick=()=>{S.friendProfId=c.userId;S.page='friendprof';R()};
+  document.getElementById('chatProfBtn2').onclick=()=>{S.friendProfId=c.userId;S.page='friendprof';R()};
+  document.getElementById('imgIn').onchange=ev=>{
+    const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=e2=>sendImgMsg(e2.target.result,f.name);r.readAsDataURL(f);
+  };
+  if(S.showChatOpt)bindChatOptSheet();
+  requestAnimationFrame(()=>{const me=document.getElementById('msgEnd');if(me)me.scrollIntoView({behavior:'instant'})});
+  setTimeout(()=>{mi.focus({preventScroll:true})},120);
+  // Start real-time stream
+  startMsgStream();
+}
+
+function renderMsgs(msgs,fs,showRead,c){
+  return msgs.map(m=>{
+    const isMe=m.from===S.me.id;
+    return`<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};align-items:flex-end;gap:7px">
+      ${!isMe?`<div data-uid="${c.userId}" style="cursor:pointer;flex-shrink:0;align-self:flex-end">${avt(c.name,c.color,32,undefined,c.photo)}</div>`:''}
+      <div style="max-width:72%">
+        <div class="${isMe?'bubble-me':'bubble-them'}" style="padding:10px 14px;font-size:${fs}px;line-height:1.55;word-break:break-word;white-space:pre-wrap">${esc(m.text)}</div>
+        <div style="font-size:10px;color:#7878a0;margin-top:3px;display:flex;align-items:center;gap:4px;justify-content:${isMe?'flex-end':'flex-start'}">
+          <span>${m.time}</span>
+          ${isMe&&showRead?`<span style="color:${m.read?'#FEDC00':'#55556a'}">${m.read?'읽음':'✓'}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateSendBtn(){
+  const sb=document.getElementById('sendBtn');
+  if(sb)sb.style.background=_txt.trim()?'#FEDC00':'#1e1e35';
+}
+
+// Real-time Firebase SSE stream
+function startMsgStream(){
+  stopMsgStream();
+  if(!S.activeChat)return;
+  const key=chatKey(S.me.id,S.activeChat.userId);
+  const url=`${FB}/messages/${key}.json`;
+  try{
+    msgStream=new EventSource(url);
+    msgStream.addEventListener('put',ev=>{
+      try{
+        const d=JSON.parse(ev.data);
+        if(!d.data)return;
+        const fresh=msgObjToArr(d.data);
+        if(fresh.length!==S.activeChat.msgs.length){
+          // Mark received messages as read
+          const myId=S.me.id;
+          const toRead={};
+          Object.entries(d.data).forEach(([k,v])=>{if(v.from!==myId&&!v.read)toRead[k]={...v,read:true}});
+          if(Object.keys(toRead).length)fbPatch(`messages/${key}`,toRead);
+          S.activeChat.msgs=fresh;
+          patchMsgList(fresh);
+          // clear my unread
+          fbSet(`unread/${myId}/${S.activeChat.userId}`,0);
+        }
+      }catch{}
+    });
+    msgStream.addEventListener('patch',ev=>{
+      // New message pushed — re-fetch
+      fbGet(`messages/${key}`).then(data=>{
+        if(!data)return;
+        const fresh=msgObjToArr(data);
+        if(fresh.length!==S.activeChat.msgs.length){
+          S.activeChat.msgs=fresh;
+          patchMsgList(fresh);
+          fbSet(`unread/${S.me.id}/${S.activeChat.userId}`,0);
+        }
+      });
+    });
+  }catch{
+    // Fallback to polling
+    pollTimer=setInterval(pollChat,2000);
+  }
+}
+
+function stopMsgStream(){
+  if(msgStream){try{msgStream.close()}catch{} msgStream=null}
+}
+
+async function pollChat(){
+  if(!S.activeChat||S.page!=='chat')return;
+  const key=chatKey(S.me.id,S.activeChat.userId);
+  const data=await fbGet(`messages/${key}`);
+  if(!data)return;
+  const fresh=msgObjToArr(data);
+  if(fresh.length!==S.activeChat.msgs.length){
+    S.activeChat.msgs=fresh;
+    patchMsgList(fresh);
+  }
+}
+
+function patchMsgList(msgs){
+  const ml=document.getElementById('msgList');
+  if(!ml){R();return}
+  const set=gSet(S.me.id);
+  ml.innerHTML=renderMsgs(msgs,set.fontSize||15,set.readReceipt!==false,S.activeChat)+'<div id="msgEnd"></div>';
+  const mi=document.getElementById('msgIn');
+  if(mi){mi.value='';_txt='';mi.focus({preventScroll:true})}
+  updateSendBtn();
+  const me=document.getElementById('msgEnd');
+  if(me)me.scrollIntoView({behavior:'smooth'});
+}
+
+async function doSend(){
+  const txt=_txt.trim();
+  if(!txt||!S.activeChat)return;
+  _txt='';
+  const mi=document.getElementById('msgIn');
+  if(mi){mi.value='';mi.focus({preventScroll:true})}
+  updateSendBtn();
+  const key=chatKey(S.me.id,S.activeChat.userId);
+  const msg={from:S.me.id,text:txt,time:ts(),read:false,ts:Date.now()};
+  // Push to Firebase — other device gets it via SSE/poll
+  await fbPush(`messages/${key}`,msg);
+  // Increment recipient's unread
+  const curUnread=await fbGet(`unread/${S.activeChat.userId}/${S.me.id}`)||0;
+  await fbSet(`unread/${S.activeChat.userId}/${S.me.id}`,curUnread+1);
+  // Refresh local msgs
+  const data=await fbGet(`messages/${key}`);
+  if(data){
+    S.activeChat.msgs=msgObjToArr(data);
+    patchMsgList(S.activeChat.msgs);
+  }
+}
+
+async function sendImgMsg(dataUrl,fname){
+  if(!S.activeChat)return;
+  const key=chatKey(S.me.id,S.activeChat.userId);
+  const msg={from:S.me.id,text:`📷 사진 (${fname})`,time:ts(),read:false,ts:Date.now()};
+  await fbPush(`messages/${key}`,msg);
+  const data=await fbGet(`messages/${key}`);
+  if(data){S.activeChat.msgs=msgObjToArr(data);patchMsgList(S.activeChat.msgs)}
+}
+
+function chatOptSheet(){
+  const c=S.activeChat;
+  return`<div class="overlay" id="chatOptBg">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;margin-bottom:16px">${avt(c.name,c.color,52,undefined,c.photo)}<div style="font-size:16px;font-weight:700;margin-top:10px">${esc(c.name)}</div></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <button id="csProf" style="flex:1;background:#1a1a2e;border:none;border-radius:12px;padding:12px;color:#e8e8f0;font-size:13px;font-weight:600;font-family:inherit">👤 프로필</button>
+      <button id="csMute" style="flex:1;background:#1a1a2e;border:none;border-radius:12px;padding:12px;color:#e8e8f0;font-size:13px;font-weight:600;font-family:inherit">🔕 알림끄기</button>
+    </div>
+    <button id="csLeave" class="btn-danger" style="margin-bottom:10px">🗑️ 대화 삭제</button>
+    <button id="csClose" class="btn-ghost">닫기</button>
+  </div></div>`;
+}
+function bindChatOptSheet(){
+  const c=S.activeChat;
+  document.getElementById('chatOptBg').onclick=ev=>{if(ev.target.id==='chatOptBg'){S.showChatOpt=false;R()}};
+  document.getElementById('csProf').onclick=()=>{S.showChatOpt=false;S.friendProfId=c.userId;S.page='friendprof';R()};
+  document.getElementById('csMute').onclick=()=>{S.showChatOpt=false;R()};
+  document.getElementById('csLeave').onclick=async()=>{
+    if(!confirm('대화를 삭제할까요?'))return;
+    await fbSet(`messages/${chatKey(S.me.id,c.userId)}`,null);
+    S.activeChat=null;S.showChatOpt=false;stopMsgStream();
+    S.prevs=await loadPrevs(S.me.id,S.friends);S.page='main';R();
+  };
+  document.getElementById('csClose').onclick=()=>{S.showChatOpt=false;R()};
+}
+
+// ═══════════════ FRIEND PROFILE ═══════════════
+async function renderFriendProf(){
+  app.innerHTML=`<div class="page" style="align-items:center;justify-content:center"><div class="spinner"></div></div>`;
+  const uid=S.friendProfId;
+  const u=await fbGet(`users/${uid}`);
+  const ov=await fbGet(`profiles/${uid}`)||{};
+  const photo=lGet(`photo_${uid}`);
+  const f=u?{...u,...ov,id:uid,photo}:null;
+  if(!f){S.page=S.activeChat?'chat':'main';R();return}
+  const msgs=msgObjToArr(await fbGet(`messages/${chatKey(S.me.id,uid)}`)||{});
+  const frIds=await fbGet(`friends/${S.me.id}`)||{};
+  const isFriend=!!frIds[uid];
+  const from=S.activeChat?'chat':'main';
+  app.innerHTML=`<div class="fade page" style="overflow:hidden">
+  <div class="topbar"><button id="fpBack" class="back-btn">←</button><div class="title">프로필</div></div>
+  <div class="scroll" style="flex:1">
+    <div style="text-align:center;padding:32px 20px 24px">
+      ${avt(f.name,f.color,88,undefined,f.photo||null)}
+      <div style="font-size:22px;font-weight:800;margin-top:14px">${esc(f.name)}</div>
+      <div style="font-size:13px;color:#FEDC00bb;margin:4px 0">@${esc(f.id)}</div>
+      <div style="font-size:14px;color:#7878a0">${esc(f.status||'')}</div>
+    </div>
+    <div style="display:flex;gap:10px;padding:0 20px 24px">
+      <button id="fpChat" style="flex:1;background:#FEDC00;border:none;border-radius:14px;padding:13px;color:#000;font-weight:700;font-size:14px;font-family:inherit">💬 메시지</button>
+      ${isFriend?`<button id="fpDel" style="flex:1;background:#ef444418;border:1.5px solid #ef444440;border-radius:14px;padding:13px;color:#ef4444;font-weight:700;font-size:14px;font-family:inherit">친구 삭제</button>`:''}
+    </div>
+    ${msgs.length>0?`<div class="card">
+      <div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:12px">최근 대화 내역</div>
+      ${msgs.slice(-6).map(m=>{const isMe=m.from===S.me.id;return`<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:8px">
+        <div style="max-width:80%;padding:9px 13px;border-radius:${isMe?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${isMe?'#FEDC00':'#2a2a4a'};color:${isMe?'#111':'#e8e8f0'};font-size:14px;word-break:break-word">${esc(m.text)}</div>
+      </div>`}).join('')}
+    </div>`:`<div style="text-align:center;color:#7878a0;font-size:14px;padding:24px">아직 대화 내역이 없어요</div>`}
+    <div style="height:30px"></div>
+  </div></div>`;
+  document.getElementById('fpBack').onclick=()=>{S.page=from;R()};
+  document.getElementById('fpChat').onclick=()=>openChat(uid);
+  const fd=document.getElementById('fpDel');
+  if(fd)fd.onclick=async()=>{
+    if(!confirm('친구를 삭제할까요?'))return;
+    await fbDel(`friends/${S.me.id}/${uid}`);
+    await fbDel(`friends/${uid}/${S.me.id}`);
+    S.friends=await loadFriends(S.me.id);
+    S.prevs=await loadPrevs(S.me.id,S.friends);
+    if(S.activeChat&&S.activeChat.userId===uid)S.activeChat=null;
+    S.page='main';S.friendProfId=null;R();
+  };
+}
+
+// ═══════════════ SETTINGS PAGE ═══════════════
+function renderSetPage(){
+  const set=gSet(S.me.id),pg=S.setPage,me=S.me;
+  const titles={notify:'알림',display:'테마 & 화면',privacy:'개인정보 보호',storage:'저장공간',lang:'언어',account:'계정 관리',help:'도움말',about:'버전 정보'};
+  function tog(key,lbl,desc=''){
+    const on=set[key]!==false;
+    return`<div class="set-row sw-row" data-key="${key}" style="margin:0 0 7px"><div><div style="font-size:14px;font-weight:600">${lbl}</div>${desc?`<div style="font-size:12px;color:#7878a0;margin-top:1px">${desc}</div>`:''}</div><button class="sw ${on?'on':'off'}" data-key="${key}"></button></div>`;
+  }
+  function radio(key,opts,lbls){
+    return opts.map((v,i)=>`<div class="set-row radio-row" data-key="${key}" data-val="${v}" style="margin:0 0 7px"><span style="font-size:14px">${lbls[i]}</span><div style="width:20px;height:20px;border-radius:50%;border:2px solid ${(set[key]||opts[0])===v?'#FEDC00':'#ffffff30'};background:${(set[key]||opts[0])===v?'#FEDC00':'transparent'};display:flex;align-items:center;justify-content:center">${(set[key]||opts[0])===v?'<div style="width:9px;height:9px;border-radius:50%;background:#000"></div>':''}</div></div>`).join('');
+  }
+  let body='';
+  if(pg==='notify')body=tog('msgAlert','메시지 알림','새 메시지 수신 시 알림')+tog('sound','알림 소리','수신 시 소리 재생')+tog('vibrate','진동','수신 시 진동')+`<div class="sec-lbl" style="padding:14px 4px 8px">알림음</div>`+radio('alertSound',[0,1,2,3],['기본음','숨톡','팝','벨']);
+  else if(pg==='display')body=tog('darkMode','다크 모드','')+`<div class="sec-lbl" style="padding:14px 4px 8px">글자 크기</div><div class="card" style="margin:0 0 8px"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:#7878a0">작게</span><input id="fontSz" type="range" min="12" max="20" value="${set.fontSize||15}" style="flex:1;accent-color:#FEDC00;height:4px"><span style="font-size:12px;color:#7878a0">크게</span></div><div style="text-align:center;margin-top:12px;font-size:${set.fontSize||15}px;color:#e8e8f0">미리보기 텍스트 💬</div></div><div class="sec-lbl" style="padding:14px 4px 8px">채팅 배경색</div><div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">${['#0f0f1a','#0d1117','#1a0f1f','#0f1a0f','#1a1500','#000000'].map(bg=>`<div class="bg-pick" data-bg="${bg}" style="width:50px;height:50px;border-radius:12px;background:${bg};cursor:pointer;border:3px solid ${(set.chatBg||'#0f0f1a')===bg?'#FEDC00':'#ffffff20'}"></div>`).join('')}</div>`;
+  else if(pg==='privacy')body=tog('lastSeen','마지막 접속 표시','')+tog('readReceipt','읽음 표시','메시지 읽음 여부 표시')+`<div class="sec-lbl" style="padding:14px 4px 8px">프로필 사진 공개</div>`+radio('profilePhoto',['all','friends','none'],['전체 공개','친구만','비공개']);
+  else if(pg==='storage')body=`<div class="card" style="margin:0 0 12px">${[['💬 채팅 데이터','Firebase 저장'],['⚡ 캐시','~1.2 MB'],['🖼️ 미디어','기기 저장']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff0a"><span style="font-size:14px">${l}</span><span style="font-size:14px;color:#7878a0">${v}</span></div>`).join('')}</div><div style="display:flex;flex-direction:column;gap:8px"><button id="clearCache" style="background:#1e1e35;border:none;border-radius:12px;padding:13px;color:#e8e8f0;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">캐시 삭제</button><button id="clearAll" class="btn-danger">⚠️ 모든 데이터 초기화</button></div>`;
+  else if(pg==='lang')body=radio('lang',['한국어','English','日本語','中文'],['🇰🇷 한국어','🇺🇸 English','🇯🇵 日本語','🇨🇳 中文']);
+  else if(pg==='account')body=`<div class="card" style="margin:0 0 16px"><div style="font-size:12px;color:#7878a0;margin-bottom:3px">현재 아이디</div><div style="font-size:18px;font-weight:700;color:#FEDC00">@${esc(me.id)}</div></div><div class="sec-lbl" style="padding:0 4px 8px">비밀번호 변경</div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"><input id="oldPw" type="password" placeholder="현재 비밀번호"><input id="newPw" type="password" placeholder="새 비밀번호 (4자 이상)"><input id="newPw2" type="password" placeholder="새 비밀번호 확인"></div><div id="pwMsg" style="min-height:22px;font-size:13px;text-align:center;margin-bottom:10px"></div><button id="changePw" class="btn-primary" style="margin-bottom:20px">변경하기</button><div class="divider" style="margin:0 0 16px"></div><button id="delAcc" class="btn-danger">⚠️ 계정 탈퇴</button>`;
+  else if(pg==='help')body=[['❓','자주 묻는 질문','친구 추가, 메시지 설정 안내'],['📢','공지사항','최신 소식과 업데이트'],['📨','1:1 문의','문제가 있으신가요?']].map(([i,t,d])=>`<div class="set-row" style="margin:0 0 7px"><div style="display:flex;align-items:center;gap:14px"><span style="font-size:20px">${i}</span><div><div style="font-size:14px;font-weight:600">${t}</div><div style="font-size:12px;color:#7878a0;margin-top:1px">${d}</div></div></div><span style="color:#7878a0;font-size:18px">›</span></div>`).join('');
+  else if(pg==='about')body=`<div style="text-align:center;padding:30px 0 24px"><div style="width:80px;height:80px;border-radius:24px;background:#FEDC00;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 14px;box-shadow:0 8px 28px #FEDC0060">💬</div><div style="font-size:24px;font-weight:800;margin-bottom:4px">숨톡</div><div style="font-size:14px;color:#7878a0">버전 1.0.0 (Firebase)</div></div>${[['개발자','조원채 (@jowonchae)'],['DB','Firebase Realtime'],['라이선스','MIT']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:13px 4px;border-bottom:1px solid #ffffff0a"><span style="font-size:14px;color:#7878a0">${k}</span><span style="font-size:14px;font-weight:600">${v}</span></div>`).join('')}`;
+
+  app.innerHTML=`<div class="fade page" style="overflow:hidden">
+  <div class="topbar"><button id="setBack" class="back-btn">←</button><div class="title">${titles[pg]||'설정'}</div></div>
+  <div class="scroll" style="flex:1;padding:14px 16px 30px">${body}</div></div>`;
+  document.getElementById('setBack').onclick=()=>{S.page='main';S.tab='settings';R()};
+  document.querySelectorAll('.sw-row').forEach(el=>el.onclick=()=>{sSet(me.id,{[el.dataset.key]:!set[el.dataset.key]});S.setPage=pg;R()});
+  document.querySelectorAll('button.sw').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();sSet(me.id,{[b.dataset.key]:!set[b.dataset.key]});S.setPage=pg;R()}});
+  document.querySelectorAll('.radio-row').forEach(el=>el.onclick=()=>{sSet(me.id,{[el.dataset.key]:isNaN(+el.dataset.val)?el.dataset.val:+el.dataset.val});S.setPage=pg;R()});
+  const fs=document.getElementById('fontSz');
+  if(fs)fs.oninput=ev=>{sSet(me.id,{fontSize:+ev.target.value});S.setPage=pg;R()};
+  document.querySelectorAll('.bg-pick').forEach(el=>el.onclick=()=>{sSet(me.id,{chatBg:el.dataset.bg});S.setPage=pg;R()});
+  const cc=document.getElementById('clearCache');if(cc)cc.onclick=()=>alert('캐시가 삭제되었습니다.');
+  const ca=document.getElementById('clearAll');if(ca)ca.onclick=()=>{if(!confirm('초기화할까요?'))return;localStorage.clear();location.reload()};
+  const cpw=document.getElementById('changePw');
+  if(cpw)cpw.onclick=async()=>{
+    const op=document.getElementById('oldPw').value,np=document.getElementById('newPw').value,np2=document.getElementById('newPw2').value;
+    const msg=document.getElementById('pwMsg');
+    const u=await fbGet(`users/${me.id}`);
+    if(!u||u.pw!==op){msg.style.color='#ef4444';msg.textContent='현재 비밀번호가 올바르지 않습니다';return}
+    if(np.length<4){msg.style.color='#ef4444';msg.textContent='4자 이상이어야 합니다';return}
+    if(np!==np2){msg.style.color='#ef4444';msg.textContent='비밀번호가 일치하지 않아요';return}
+    await fbPatch(`users/${me.id}`,{pw:np});
+    msg.style.color='#22c55e';msg.textContent='✅ 비밀번호가 변경되었습니다';
+  };
+  const da=document.getElementById('delAcc');
+  if(da)da.onclick=async()=>{if(!confirm('탈퇴할까요?'))return;await fbDel(`users/${me.id}`);doLogout()};
+}
+
+// ═══════════════ SHEETS ═══════════════
+function profSheet(){
+  const me=S.me;
+  return`<div class="overlay" id="profBg">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:18px">프로필 수정</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px">
+      <div style="position:relative">${avt(S.pName||me.name,me.color,84,undefined,me.photo||null)}
+        <label style="position:absolute;bottom:-2px;right:-2px;width:28px;height:28px;border-radius:50%;background:#FEDC00;border:2px solid #1e1e35;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px">📷<input type="file" id="pPhoto" accept="image/*" style="display:none"></label>
+      </div>
+      <div style="font-size:12px;color:#7878a0">📷 눌러서 사진 변경</div>
+    </div>
+    <div style="margin-bottom:12px"><div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:5px">이름</div><input id="pName" type="text"></div>
+    <div style="margin-bottom:14px"><div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:5px">상태메시지</div><input id="pStatus" type="text"></div>
+    <div style="background:#2a2a4a;border-radius:11px;padding:11px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;color:#7878a0">아이디</span>
+      <span style="font-size:13px;color:#FEDC00;font-weight:700">@${esc(me.id)}</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button id="cancelProf" style="flex:1;background:#16162a;border:1px solid #ffffff15;border-radius:12px;padding:13px;color:#7878a0;font-weight:600;font-size:14px;font-family:inherit">취소</button>
+      <button id="saveProf" class="btn-primary" style="flex:2">저장</button>
+    </div>
+  </div></div>`;
+}
+
+function bindProfSheet(){
+  if(!S.showProf)return;
+  document.getElementById('profBg').onclick=ev=>{if(ev.target.id==='profBg'){S.showProf=false;R()}};
+  const pn=document.getElementById('pName'),ps=document.getElementById('pStatus');
+  if(pn){pn.value=S.pName;pn.oninput=ev=>S.pName=ev.target.value}
+  if(ps){ps.value=S.pStatus;ps.oninput=ev=>S.pStatus=ev.target.value}
+  document.getElementById('saveProf').onclick=async()=>{
+    await fbPatch(`profiles/${S.me.id}`,{name:S.pName,status:S.pStatus});
+    S.me={...S.me,name:S.pName,status:S.pStatus};
+    S.showProf=false;R();
+  };
+  document.getElementById('cancelProf').onclick=()=>{S.showProf=false;R()};
+  const pp=document.getElementById('pPhoto');
+  if(pp)pp.onchange=ev=>{
+    const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=e2=>{
+      lSet(`photo_${S.me.id}`,e2.target.result);
+      S.me={...S.me,photo:e2.target.result};
+      S.showProf=false;R();
+    };r.readAsDataURL(f);
+  };
+}
+
+function addSheet(){
+  return`<div class="overlay" id="addBg">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:5px">친구 추가</div>
+    <div style="font-size:13px;color:#7878a0;margin-bottom:16px">아이디로 친구를 검색하세요</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="addIn" type="text" placeholder="아이디 입력" style="flex:1;border-color:${S.addRes==='notfound'?'#ef4444':'#ffffff1a'}">
+      <button id="doSrch" class="btn-primary" style="width:auto;padding:12px 18px;flex-shrink:0">검색</button>
+    </div>
+    ${!S.addRes?`<div style="background:#1a1a2e;border-radius:12px;padding:13px">
+      <div style="font-size:12px;color:#7878a0;font-weight:600;margin-bottom:8px">💡 검색 힌트</div>
+      <div style="font-size:13px;color:#7878a0">가입된 사용자 아이디를 입력하세요<br><span style="color:#FEDC00aa">예: jisukim, minjun99, taeyangk...</span></div>
+    </div>`:''}
+    ${S.addRes==='notfound'?`<div style="background:#ef444415;border:1px solid #ef444430;border-radius:12px;padding:16px;text-align:center"><div style="font-size:28px;margin-bottom:6px">😕</div><div style="font-size:14px;color:#ef4444;font-weight:600">'${esc(S.addId)}' 를 찾을 수 없어요</div></div>`:''}
+    ${S.addRes==='self'?`<div style="background:#f59e0b18;border:1px solid #f59e0b30;border-radius:12px;padding:16px;text-align:center"><div style="font-size:28px;margin-bottom:6px">🪞</div><div style="font-size:14px;color:#f59e0b;font-weight:600">그건 내 아이디예요!</div></div>`:''}
+    ${(S.addRes==='success'||S.addRes==='already')&&S.foundU?`<div style="background:#1a1a2e;border-radius:13px;padding:14px">
+      <div style="display:flex;align-items:center;gap:13px;margin-bottom:13px">${avt(S.foundU.name,S.foundU.color,52,undefined,null)}<div><div style="font-size:16px;font-weight:700">${esc(S.foundU.name)}</div><div style="font-size:12px;color:#FEDC00bb;margin-bottom:3px">@${esc(S.foundU.id)}</div><div style="font-size:13px;color:#7878a0">${esc(S.foundU.status||'')}</div></div></div>
+      ${S.addRes==='already'?`<div style="text-align:center;font-size:13px;color:#22c55e;font-weight:600;padding:10px;background:#22c55e18;border-radius:9px">✅ 이미 친구입니다</div>`:`<button id="confirmAdd" class="btn-primary">👋 친구 추가하기</button>`}
+    </div>`:''}
+    <button id="closeAdd" class="btn-ghost" style="margin-top:10px">닫기</button>
+  </div></div>`;
+}
+
+function bindAddSheet(){
+  if(!S.showAdd)return;
+  document.getElementById('addBg').onclick=ev=>{if(ev.target.id==='addBg'){S.showAdd=false;R()}};
+  const ai=document.getElementById('addIn');
+  if(ai){ai.value=S.addId;ai.oninput=ev=>{S.addId=ev.target.value;S.addRes=null};ai.onkeydown=ev=>{if(ev.key==='Enter')doSearch()};setTimeout(()=>ai.focus(),100)}
+  document.getElementById('doSrch').onclick=doSearch;
+  document.getElementById('closeAdd').onclick=()=>{S.showAdd=false;R()};
+  const cf=document.getElementById('confirmAdd');
+  if(cf)cf.onclick=confirmAdd;
+}
+
+// ═══════════════ ACTIONS ═══════════════
+async function openChat(uid){
+  S.page='loading';R();setLoadMsg('대화 불러오는 중...');
+  const u=await fbGet(`users/${uid}`);
+  const ov=await fbGet(`profiles/${uid}`)||{};
+  const photo=lGet(`photo_${uid}`);
+  const f=u?{...u,...ov,id:uid,photo}:S.friends.find(f=>f.id===uid);
+  if(!f){S.page='main';R();return}
+  // Mark messages as read
+  const key=chatKey(S.me.id,uid);
+  const rawMsgs=await fbGet(`messages/${key}`)||{};
+  const updates={};
+  Object.entries(rawMsgs).forEach(([k,v])=>{if(v.from!==S.me.id&&!v.read)updates[k]={...v,read:true}});
+  if(Object.keys(updates).length)await fbPatch(`messages/${key}`,updates);
+  // Clear unread
+  await fbSet(`unread/${S.me.id}/${uid}`,0);
+  const msgs=msgObjToArr({...rawMsgs,...updates});
+  _txt='';
+  S.activeChat={userId:uid,name:f.name,color:f.color,photo:f.photo||null,msgs};
+  S.friendProfId=null;
+  S.page='chat';R();
+}
+
+async function saveStatus(){
+  const st=S.tmpStatus;
+  await fbPatch(`profiles/${S.me.id}`,{status:st});
+  S.me={...S.me,status:st};S.editStatus=false;R();
+}
+
+function doLogout(){
+  stopMsgStream();clearInterval(pollTimer);
+  lSet('session',null);
+  S.me=null;S.friends=[];S.prevs=[];S.activeChat=null;S.setPage=null;S.friendProfId=null;_txt='';
+  S.page='login';R();
+}
+
+async function doSearch(){
+  S.addRes=null;S.foundU=null;
+  const q=S.addId.trim().toLowerCase();if(!q)return;
+  const srchBtn=document.getElementById('doSrch');
+  if(srchBtn){srchBtn.disabled=true;srchBtn.textContent='...';}
+  if(q===S.me.id){S.addRes='self';R();return}
+  const frIds=await fbGet(`friends/${S.me.id}`)||{};
+  if(frIds[q]){S.addRes='already';const u=await fbGet(`users/${q}`);const ov=await fbGet(`profiles/${q}`)||{};S.foundU=u?{...u,...ov,id:q}:null;R();return}
+  const u=await fbGet(`users/${q}`);
+  if(u){const ov=await fbGet(`profiles/${q}`)||{};S.addRes='success';S.foundU={...u,...ov,id:q};}
+  else S.addRes='notfound';
+  R();
+}
+
+async function confirmAdd(){
+  const f=S.foundU;if(!f)return;
+  const btn=document.getElementById('confirmAdd');
+  if(btn){btn.disabled=true;btn.textContent='추가 중...'}
+  await fbSet(`friends/${S.me.id}/${f.id}`,true);
+  await fbSet(`friends/${f.id}/${S.me.id}`,true);
+  const key=chatKey(S.me.id,f.id);
+  const existing=await fbGet(`messages/${key}`);
+  if(!existing){
+    await fbPush(`messages/${key}`,{from:f.id,text:'안녕하세요! 친구 추가해줘서 고마워요 😊',time:ts(),read:false,ts:Date.now()});
+    await fbSet(`unread/${S.me.id}/${f.id}`,1);
+  }
+  S.friends=await loadFriends(S.me.id);
+  S.prevs=await loadPrevs(S.me.id,S.friends);
+  S.showAdd=false;S.addId='';S.addRes=null;S.foundU=null;R();
+}
+
+// ═══════════════ POLL (fallback) ═══════════════
+function startPoll(){
+  clearInterval(pollTimer);
+  pollTimer=setInterval(async()=>{
+    if(!S.me)return;
+    // Refresh unread counts in main
+    if(S.page==='main'){
+      const unread=await fbGet(`unread/${S.me.id}`)||{};
+      let changed=false;
+      S.prevs.forEach(p=>{const u=unread[p.userId]||0;if(p.unread!==u){p.unread=u;changed=true}});
+      if(changed)R();
+    }
+  },5000);
+}
+
+// ═══════════════ PWA ═══════════════
+if('serviceWorker'in navigator){
+  const sw=`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',()=>clients.claim());`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+// ═══════════════ BOOT ═══════════════
+async function boot(){
+  S.page='loading';R();
+  setLoadMsg('서버 연결 중...');
+  await initDB();
+  setLoadMsg('준비 완료!');
+  // Restore session
+  const sess=lGet('session');
+  if(sess&&sess.id){
+    setLoadMsg('로그인 정보 확인 중...');
+    const u=await fbGet(`users/${sess.id}`);
+    if(u){
+      const ov=await fbGet(`profiles/${sess.id}`)||{};
+      const photo=lGet(`photo_${sess.id}`);
+      S.me={...u,...ov,id:sess.id,photo};
+      setLoadMsg('데이터 불러오는 중...');
+      S.friends=await loadFriends(sess.id);
+      S.prevs=await loadPrevs(sess.id,S.friends);
+      S.tab='friends';S.page='main';_txt='';startPoll();R();return;
+    }
+  }
+  S.page='login';R();
+}
+boot();
+</script>
+</body>
+</html>
